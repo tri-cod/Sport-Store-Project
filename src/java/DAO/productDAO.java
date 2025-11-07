@@ -81,7 +81,7 @@ public class productDAO {
         try {
             conn = DbUtils.getConnection();
             ps = conn.prepareStatement(qr);
-            ps.setString(1,"%"+txtSearch+"%");
+            ps.setString(1, "%" + txtSearch + "%");
             rs = ps.executeQuery();
             while (rs.next()) {
                 productDTO p = new productDTO(
@@ -103,6 +103,49 @@ public class productDAO {
         }
 
         return list;
+    }
+
+    public void insertProduct(productDTO product) {
+
+        // Đã sửa lỗi cú pháp (thêm dấu +)
+        String sql = "INSERT INTO tblProduct (productId, productName, price, size, imageBase64, color, quantity, description, categoryID)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        // Dùng Connection và PreparedStatement cục bộ
+        Connection localConn = null;
+        PreparedStatement localPs = null;
+
+        try {
+            localConn = DbUtils.getConnection();
+            if (localConn != null) {
+                localPs = localConn.prepareStatement(sql);
+
+                localPs.setString(1, product.getProductId());
+                localPs.setString(2, product.getProductName());
+                localPs.setFloat(3, product.getPrice());
+                localPs.setString(4, product.getSize());
+                localPs.setString(5, product.getImage()); // Lưu 'image' vào 'imageBase64'
+                localPs.setString(6, product.getColor());
+                localPs.setInt(7, product.getQuantity());
+                localPs.setString(8, product.getDescription());
+                localPs.setString(9, product.getCategoryId()); // Khớp với 'categoryID'
+
+                localPs.executeUpdate();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (localPs != null) {
+                    localPs.close();
+                }
+                if (localConn != null) {
+                    localConn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

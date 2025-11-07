@@ -24,6 +24,9 @@
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+                <a href="productController?action=insert" class="btn btn-success mb-3">
+                    Thêm sản phẩm mới
+                </a>
             </div>
         </form>
 
@@ -81,6 +84,7 @@
                 </div>
             </c:otherwise>
         </c:choose>
+        <a href="adminDashboard.jsp">Quay lại Dashboard</a>
 
     </body>
 </html>
