@@ -36,14 +36,19 @@ public class homeController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        String cateId = request.getParameter("cid");
         productDAO pdao = new productDAO();
-        List<productDTO> listP = pdao.getALlProduct();
-        
-        categoryDAO cdao = new categoryDAO();
-        List<categoryDTO> listC = cdao.getAllCategories();
-        
-       
-        
+        List<productDTO> listP;
+        categoryDAO ccdao = new categoryDAO();
+        List<categoryDTO> listC = ccdao.getAllCategories();
+
+        if (cateId == null || cateId.isEmpty()) {
+            listP = pdao.getALlProduct();
+        } else {
+            listP = ccdao.getProductByCategoryId(cateId);
+        }
+
+        request.setAttribute("selectedCategory", cateId);
         request.setAttribute("listC", listC);
         request.setAttribute("listP", listP);
         request.getRequestDispatcher("home.jsp").forward(request, response);

@@ -10,7 +10,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -102,42 +104,36 @@ public class productController extends HttpServlet {
         if (action != null && action.equals("insertProcess")) {
 
             try {
-                // 1. Lấy các trường text như cũ
+                // 1. Lấy các trường text
                 String id = request.getParameter("productId");
                 String name = request.getParameter("productName");
                 float price = Float.parseFloat(request.getParameter("price"));
                 String size = request.getParameter("size");
-                // Bỏ dòng 'String image = ...' cũ
                 String color = request.getParameter("color");
                 int quantity = Integer.parseInt(request.getParameter("quantity"));
                 String description = request.getParameter("description");
                 String categoryId = request.getParameter("categoryId");
 
-                // 2. Xử lý file upload
-                Part filePart = request.getPart("imageFile"); // "imageFile" là 'name' từ form
-                InputStream fileContent = filePart.getInputStream();
+                // 2. Xử lý Ảnh Đại Diện (mainImage)
+                Part mainImagePart = request.getPart("mainImage");
+                String mainImageBase64 = convertPartToBase64(mainImagePart);
 
-                // Chuyển InputStream (file) sang byte[]
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                byte[] buffer = new byte[4096]; // Buffer 4KB
-                int bytesRead;
-                while ((bytesRead = fileContent.read(buffer)) != -1) {
-                    output.write(buffer, 0, bytesRead);
+                // 3. Xử lý Ảnh Gallery (galleryImages)
+                List<String> galleryBase64List = new ArrayList<>();
+                Collection<Part> parts = request.getParts();
+                for (Part part : parts) {
+                    if ("galleryImages".equals(part.getName()) && part.getSize() > 0) {
+                        galleryBase64List.add(convertPartToBase64(part));
+                    }
                 }
-                byte[] imageBytes = output.toByteArray();
 
-                // 3. Mã hóa byte[] sang String Base64
-                String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
-
-                // 4. Đóng streams
-                fileContent.close();
-                output.close();
-
-                // 5. Tạo DTO với chuỗi Base64
+                // 4. Tạo DTO
                 productDTO newProduct = new productDTO(id, name, price, size,
-                        imageBase64, // Dùng biến Base64
+                        mainImageBase64, // Ảnh đại diện
                         color, quantity, description, categoryId);
+                newProduct.setGalleryImages(galleryBase64List); // Danh sách ảnh phụ
 
+                // 5. Lưu vào DAO
                 productDAO dao = new productDAO();
                 dao.insertProduct(newProduct);
 
@@ -146,11 +142,30 @@ public class productController extends HttpServlet {
             } catch (Exception e) {
                 e.printStackTrace();
                 request.setAttribute("errorMessage", "Thêm mới thất bại: " + e.getMessage());
-                request.getRequestDispatcher("insert-product.jsp").forward(request, response);
+                request.getRequestDispatcher("insertproduct.jsp").forward(request, response);
             }
         } else {
             loadAllProduct(request, response);
         }
+    }
+
+    // === HÀM HỖ TRỢ (để chuyển file sang Base64) ===
+    private String convertPartToBase64(Part part) throws IOException {
+        if (part == null || part.getSize() == 0) {
+            return null;
+        }
+        InputStream fileContent = part.getInputStream();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = fileContent.read(buffer)) != -1) {
+            output.write(buffer, 0, bytesRead);
+        }
+        byte[] imageBytes = output.toByteArray();
+        String imageBase64 = Base64.getEncoder().encodeToString(imageBytes);
+        fileContent.close();
+        output.close();
+        return imageBase64;
     }
 
     /**

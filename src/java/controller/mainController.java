@@ -33,19 +33,21 @@ public class mainController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         String txtAction = request.getParameter("txtAction");
-        String url = "home.jsp";
 
-        
+        String url = "homeController";
 
-        if (txtAction.equals("search")) {
-            url = "searchController";
-        } else if (txtAction.equals("login")||txtAction.equals("register")) {
-            url = "userController";
-        } else if (txtAction.equals("logout")) {
-            url = "userController";
+        if (txtAction != null) {
+            if (txtAction.equals("search")) {
+                url = "searchController";
+            } else if (txtAction.equals("login") || txtAction.equals("register")) {
+                url = "userController";
+            } else if (txtAction.equals("logout")) {
+                url = "userController";
+            }
         }
 
         request.getRequestDispatcher(url).forward(request, response);
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

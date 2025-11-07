@@ -61,53 +61,57 @@ public class managerCategoryController extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
-    if (action == null) {
-        action = "list"; // Mặc định là xem danh sách
-    }
-    
-    categoryDAO dao = new categoryDAO();
-    String url = "managerCategory.jsp"; // Trang mặc định
-
-    try {
-        switch (action) {
-            case "delete":
-                // Xử lý XÓA MỀM (chuyển sang thùng rác)
-                String deleteId = request.getParameter("id");
-                dao.softDeleteCategory(deleteId);
-                // Dùng sendRedirect để tránh lỗi F5
-                response.sendRedirect("managerCategoryController?action=list&deleteSuccess=true"); 
-                return; // Dừng lại sau khi redirect
-
-            case "restore":
-                // Xử lý KHÔI PHỤC (lấy từ thùng rác)
-                String restoreId = request.getParameter("id");
-                dao.restoreCategory(restoreId);
-                // Tải lại trang thùng rác
-                response.sendRedirect("managerCategoryController?action=trash&restoreSuccess=true");
-                return; // Dừng lại sau khi redirect
-
-            case "trash":
-                // Xử lý XEM THÙNG RÁC (action mới)
-                List<categoryDTO> trashList = dao.getDeletedCategories();
-                request.setAttribute("trashList", trashList);
-                url = "trashCategory.jsp"; // Chuyển đến trang JSP mới
-                break;
-                
-            case "list":
-            default:
-                // Xử lý XEM DANH SÁCH (mặc định)
-                List<categoryDTO> categoryList = dao.getAllCategories();
-                request.setAttribute("categoryList", categoryList);
-                url = "managerCategory.jsp";
-                break;
+        if (action == null) {
+            action = "list";
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-        request.setAttribute("errorMessage", "Đã xảy ra lỗi: " + e.getMessage());
-    }
 
-    request.getRequestDispatcher(url).forward(request, response);
-}
+        categoryDAO dao = new categoryDAO();
+        String url = "managerCategory.jsp";
+
+        try {
+            switch (action) {
+                case "delete":
+                    String deleteId = request.getParameter("id");
+                    dao.softDeleteCategory(deleteId);
+                    response.sendRedirect("managerCategoryController?action=list&deleteSuccess=true");
+                    return;
+
+                case "restore":
+                    String restoreId = request.getParameter("id");
+                    dao.restoreCategory(restoreId);
+                    response.sendRedirect("managerCategoryController?action=trash&restoreSuccess=true");
+                    return;
+
+                case "trash":
+                    List<categoryDTO> trashList = dao.getDeletedCategories();
+                    request.setAttribute("trashList", trashList);
+                    url = "trashCategory.jsp";
+                    break;
+
+                // === CASE MỚI ĐỂ SỬA ===
+                case "edit":
+                    String editId = request.getParameter("id");
+                    // 1. Lấy thông tin của category cần sửa
+                    categoryDTO categoryToEdit = dao.getCategoryById(editId);
+                    request.setAttribute("categoryToEdit", categoryToEdit);
+                // 2. *Fall-through* (chạy tiếp) xuống case 'list' 
+                //    để lấy cả danh sách
+
+                case "list":
+                default:
+                    // Luôn luôn lấy danh sách (kể cả khi đang Sửa)
+                    List<categoryDTO> categoryList = dao.getAllCategories();
+                    request.setAttribute("categoryList", categoryList);
+                    url = "managerCategory.jsp";
+                    break;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("errorMessage", "Đã xảy ra lỗi: " + e.getMessage());
+        }
+
+        request.getRequestDispatcher(url).forward(request, response);
+    }
 
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -122,34 +126,37 @@ public class managerCategoryController extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("action");
+        categoryDAO dao = new categoryDAO();
 
-        if (action != null && action.equals("insert")) {
-            try {
+        try {
+            if (action != null && action.equals("insert")) {
+                // === LOGIC THÊM MỚI (đã có) ===
                 String id = request.getParameter("categoryId");
                 String name = request.getParameter("categoryName");
-
                 categoryDTO newCategory = new categoryDTO(id, name);
-                categoryDAO dao = new categoryDAO();
                 dao.insertCategory(newCategory);
 
-                request.setAttribute("message", "Thêm thành công!");
-
-            } catch (Exception e) {
-                request.setAttribute("errorMessage", "Thêm thất bại: " + e.getMessage());
-                e.printStackTrace();
+            } else if (action != null && action.equals("updateProcess")) {
+                // === LOGIC CẬP NHẬT (mới) ===
+                String id = request.getParameter("categoryId"); // Lấy ID
+                String name = request.getParameter("categoryName"); // Lấy tên mới
+                dao.updateCategory(id, name); // Gọi hàm update
             }
+        } catch (Exception e) {
+            // Nếu có lỗi (ví dụ trùng ID), báo lỗi
+            request.setAttribute("errorMessage", "Thao tác thất bại: " + e.getMessage());
+            e.printStackTrace();
+            // Nếu lỗi, forward lại trang (kèm báo lỗi)
+            doGet(request, response);
+            return;
         }
-        response.sendRedirect("managerCategoryController");
+
+        // Nếu thành công (Insert hoặc Update), redirect về trang list
+        response.sendRedirect("managerCategoryController?action=list");
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
+        return "Category Controller";
+    }
 }

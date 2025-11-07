@@ -20,6 +20,10 @@
             <a href="managerCategoryController">addCategory</a>
         </h1>
         <br/>
+        <hr>
+        <a href="mainController" class="btn btn-primary mt-3">🏠 Quay lại Trang chủ</a>
 
     </body>
+</html>
+</body>
 </html>

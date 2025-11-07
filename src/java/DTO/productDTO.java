@@ -1,6 +1,7 @@
 package DTO;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class productDTO implements Serializable {
 
@@ -13,6 +14,7 @@ public class productDTO implements Serializable {
     private int quantity;
     private String description;
     private String categoryId;
+    private List<String> galleryImages;
 
     public productDTO() {
     }
@@ -103,9 +105,17 @@ public class productDTO implements Serializable {
         this.categoryId = categoryId;
     }
 
+    public List<String> getGalleryImages() {
+        return galleryImages;
+    }
+
+    public void setGalleryImages(List<String> galleryImages) {
+        this.galleryImages = galleryImages;
+    }
+
     @Override
     public String toString() {
         return "productDTO{" + "productId=" + productId + ", productName=" + productName + ", price=" + price + ", size=" + size + ", image=" + image + ", color=" + color + ", quantity=" + quantity + ", description=" + description + ", categoryId=" + categoryId + '}';
     }
-    
+
 }
