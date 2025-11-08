@@ -21,7 +21,6 @@ import utils.DbUtils;
  * @author Admin
  */
 public class categoryDAO {
-    
 
     Connection conn = null;
     PreparedStatement ps = null;
@@ -46,9 +45,7 @@ public class categoryDAO {
 
     public List<productDTO> getProductByCategoryId(String id) {
         List<productDTO> list = new ArrayList<>();
-        String qr = "SELECT p.* FROM tblProduct p "
-                + "JOIN tblCategory c ON p.categoryID = c.categoryID "
-                + "WHERE p.categoryId = ? AND c.status = 1";
+        String qr = "select * from tblProduct where categoryId = ? AND status = 1";
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
@@ -153,96 +150,102 @@ public class categoryDAO {
         }
     }
 
-   public List<categoryDTO> getDeletedCategories() {
-    List<categoryDTO> list = new ArrayList<>();
-    String sql = "SELECT * FROM tblCategory WHERE status = 0"; // Lấy status = 0
-    
-    try (Connection con = DbUtils.getConnection();
-         PreparedStatement pst = con.prepareStatement(sql);
-         ResultSet rs = pst.executeQuery()) {
+    public List<categoryDTO> getDeletedCategories() {
+        List<categoryDTO> list = new ArrayList<>();
+        String sql = "SELECT * FROM tblCategory WHERE status = 0"; // Lấy status = 0
 
-        while (rs.next()) {
-            list.add(new categoryDTO(
-                    rs.getString("categoryId"),
-                    rs.getString("categoryName")
-            ));
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return list;
-}
+        try ( Connection con = DbUtils.getConnection();  PreparedStatement pst = con.prepareStatement(sql);  ResultSet rs = pst.executeQuery()) {
 
-// 2. HÀM MỚI: Khôi phục danh mục (ngược lại với softDelete)
-public void restoreCategory(String id) throws SQLException, ClassNotFoundException {
-    String sql = "UPDATE tblCategory SET status = 1 WHERE categoryID = ?"; // Set status = 1
-    
-    Connection conn = null;
-    PreparedStatement ps = null;
-
-    try {
-        conn = DbUtils.getConnection(); 
-        if (conn != null) {
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, id); 
-            ps.executeUpdate(); 
-        }
-    } finally {
-        try {
-            if (ps != null) ps.close();
-            if (conn != null) conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-}
-
-// 1. HÀM MỚI: Lấy 1 danh mục bằng ID (để điền vào form sửa)
-public categoryDTO getCategoryById(String id) {
-    String sql = "SELECT * FROM tblCategory WHERE categoryID = ? AND status = 1";
-    
-    try (Connection con = DbUtils.getConnection();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-        
-        ps.setString(1, id);
-        try (ResultSet rs = ps.executeQuery()) {
-            if (rs.next()) {
-                return new categoryDTO(
+            while (rs.next()) {
+                list.add(new categoryDTO(
                         rs.getString("categoryId"),
                         rs.getString("categoryName")
-                );
+                ));
             }
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return null; // Không tìm thấy
-}
-
-// 2. HÀM MỚI: Cập nhật tên của danh mục
-public void updateCategory(String id, String name) throws SQLException, ClassNotFoundException {
-    String sql = "UPDATE tblCategory SET categoryName = ? WHERE categoryID = ?";
-    
-    Connection conn = null;
-    PreparedStatement ps = null;
-
-    try {
-        conn = DbUtils.getConnection(); 
-        if (conn != null) {
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, name); 
-            ps.setString(2, id);   
-            ps.executeUpdate(); 
-        }
-    } finally {
-        try {
-            if (ps != null) ps.close();
-            if (conn != null) conn.close();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
+        return list;
     }
-}
+
+// 2. HÀM MỚI: Khôi phục danh mục (ngược lại với softDelete)
+    public void restoreCategory(String id) throws SQLException, ClassNotFoundException {
+        String sql = "UPDATE tblCategory SET status = 1 WHERE categoryID = ?"; // Set status = 1
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = DbUtils.getConnection();
+            if (conn != null) {
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, id);
+                ps.executeUpdate();
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+// 1. HÀM MỚI: Lấy 1 danh mục bằng ID (để điền vào form sửa)
+    public categoryDTO getCategoryById(String id) {
+        String sql = "SELECT * FROM tblCategory WHERE categoryID = ? AND status = 1";
+
+        try ( Connection con = DbUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, id);
+            try ( ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new categoryDTO(
+                            rs.getString("categoryId"),
+                            rs.getString("categoryName")
+                    );
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null; // Không tìm thấy
+    }
+
+// 2. HÀM MỚI: Cập nhật tên của danh mục
+    public void updateCategory(String id, String name) throws SQLException, ClassNotFoundException {
+        String sql = "UPDATE tblCategory SET categoryName = ? WHERE categoryID = ?";
+
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = DbUtils.getConnection();
+            if (conn != null) {
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, name);
+                ps.setString(2, id);
+                ps.executeUpdate();
+            }
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static void main(String[] args) {
         categoryDAO cdao = new categoryDAO();
         List<productDTO> List = cdao.getProductByCategoryId("C01");
