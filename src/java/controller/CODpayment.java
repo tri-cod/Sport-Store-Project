@@ -4,11 +4,14 @@
  */
 package controller;
 
+import DAO.cartItemDAO;
 import DAO.orderDAO;
+import DTO.cartItemDTO;
 import DTO.orderDTO;
 import DTO.userDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -45,13 +48,20 @@ public class CODpayment extends HttpServlet {
         orderDTO order = new orderDTO();
         order.setUserId(user.getUserId());
         order.setAmountPrice(amountPrice);
+        cartItemDAO cdao = new cartItemDAO();
 
         orderDAO dao = new orderDAO();
-
+        orderDTO currentOrder = dao.getCurrentOrder(user.getUserId());
         orderDTO orderId = dao.getCurrentOrder(order.getUserId());
         if (orderId.getOrderId() < 1) {
             response.sendRedirect("cartController");
         }
+
+        List<cartItemDTO> list = cdao.getCartItemsByOrder(currentOrder.getOrderId());
+
+        request.setAttribute("listP", list);
+        request.setAttribute("amountPrice", amountPrice);
+        request.getRequestDispatcher("confirmCODpayment.jsp").forward(request, response);
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

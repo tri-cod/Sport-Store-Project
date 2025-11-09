@@ -11,12 +11,10 @@
                 margin: 40px;
                 background-color: #f5f5f5;
             }
-
             h1 {
                 text-align: center;
                 color: #333;
             }
-
             table {
                 width: 90%;
                 margin: 0 auto;
@@ -24,33 +22,28 @@
                 background-color: #fff;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             }
-
             th, td {
                 border: 1px solid #ddd;
                 padding: 12px;
                 text-align: center;
             }
-
             th {
                 background-color: #4CAF50;
                 color: white;
             }
-
             img {
                 width: 90px;
                 height: 90px;
                 object-fit: cover;
                 border-radius: 8px;
             }
-
             .total {
                 text-align: right;
                 font-weight: bold;
                 font-size: 18px;
                 margin: 20px 100px;
             }
-
-            .payment-method {
+            .payment-method, .shipping-info {
                 width: 80%;
                 margin: 30px auto;
                 background-color: #fff;
@@ -58,36 +51,26 @@
                 border-radius: 8px;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             }
-
-            .payment-method h3 {
+            .payment-method h3, .shipping-info h3 {
                 color: #333;
                 margin-bottom: 15px;
             }
-
-            .payment-method label {
+            .payment-method label, .shipping-info label {
                 display: block;
                 padding: 8px 0;
             }
-
             .checkout {
                 text-align: center;
                 margin: 30px;
             }
-
             .checkout button {
-                background-color: #28a745;
-                color: white;
                 padding: 12px 20px;
                 border: none;
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 16px;
+                color: white;
             }
-
-            .checkout button:hover {
-                background-color: #218838;
-            }
-
             .back-link {
                 display: block;
                 text-align: center;
@@ -95,9 +78,15 @@
                 text-decoration: none;
                 color: #007bff;
             }
-
             .back-link:hover {
                 text-decoration: underline;
+            }
+            input[type="text"], input[type="tel"], textarea {
+                width: 100%;
+                padding: 8px;
+                margin: 5px 0 15px 0;
+                border: 1px solid #ccc;
+                border-radius: 4px;
             }
         </style>
     </head>
@@ -138,11 +127,9 @@
                                     </c:otherwise>
                                 </c:choose>
                             </td>
-
                             <td>${item.product.productName}</td>
                             <td>${item.product.price} VND</td>
                             <td>${item.quantity}</td>
-
                             <td>
                                 <c:set var="subtotal" value="${item.product.price * item.quantity}" />
                                 ${subtotal}
@@ -157,30 +144,54 @@
                 Tổng cộng: <span style="color:#e63946;">${amountPrice} VND</span>
             </div>
 
-            <!-- Phương thức thanh toán -->
+            <!-- Nút chuyển sang trang quản lý địa chỉ -->
+            <div class="checkout" style="margin-top: 15px;">
+                <a href="address" 
+                   style="display:inline-block; background-color:#28a745; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
+                    🛠 Quản lý địa chỉ
+                </a>
+            </div>
+
+            <!-- 🟧 Form điền thông tin người nhận -->
+            <form action="addressController?action=loadAddressList" method="post"> <!-- ⬅ Chuyển sang Servlet quản lý address -->
+                <label for="selectedAddress">Chọn địa chỉ:</label>
+                <select id="selectedAddress" name="selectedAddress">
+                    <c:forEach var="addr" items="${listAddress}">
+                        <option value="${addr.inforId}">
+                            ${addr.name} - ${addr.phoneNumber} - ${addr.address}
+                        </option>
+                    </c:forEach>
+                </select>
+                <div class="checkout">
+                    <button type="submit" name="txtAction" value="useSelectedAddress" style="background-color:#007bff;">
+                        ✅ Chọn địa chỉ
+                    </button>
+                </div>
+            </form>
+
+            <!-- 🟩/🟦 Phương thức thanh toán -->
             <div class="payment-method">
                 <h3>Chọn phương thức thanh toán:</h3>
 
-                <!-- 🟩 Form thanh toán COD -->
+                <!-- COD -->
                 <form action="CODpayment" method="post" style="margin-bottom: 20px;">
                     <input type="hidden" name="paymentMethod" value="COD">
                     <input type="hidden" name="totalBill" value="${amountPrice}">
-
                     <div class="checkout">
                         <button type="submit" style="background-color:#007bff;">💵 Thanh toán khi nhận hàng (COD)</button>
                     </div>
                 </form>
 
-                <!-- 🟦 Form thanh toán VNPay -->
+                <!-- VNPay -->
                 <form action="payment" method="post">
                     <input type="hidden" name="paymentMethod" value="VNPay">
                     <input type="hidden" name="totalBill" value="${amountPrice}">
-
                     <div class="checkout">
                         <button type="submit" style="background-color:#28a745;">💳 Thanh toán qua VNPay</button>
                     </div>
                 </form>
             </div>
+
         </c:if>
 
         <a href="cartController" class="back-link">← Quay lại giỏ hàng</a>
