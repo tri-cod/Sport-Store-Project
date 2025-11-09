@@ -4,8 +4,8 @@
  */
 package controller;
 
-import DAO.categoryDAO;
-import DAO.productDAO;
+import models.categoryDAO;
+import models.productDAO;
 import DTO.categoryDTO;
 import DTO.productDTO;
 import java.io.IOException;

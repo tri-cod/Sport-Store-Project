@@ -4,9 +4,9 @@
  */
 package controller;
 
-import DAO.cartDAO;
-import DAO.cartItemDAO;
-import DAO.productDAO;
+import models.cartDAO;
+import models.cartItemDAO;
+import models.productDAO;
 import DTO.cartItemDTO;
 import DTO.productDTO;
 import DTO.userDTO;

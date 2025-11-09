@@ -53,7 +53,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <p>ban da co tai khoan quai lai </p><a href="mainController?txtAction=login">dang nhap</a>
+                        <p>ban da co tai khoan quay lai </p><a href="mainController?txtAction=login">dang nhap</a>
                     </td>
                 </tr>
             </table>

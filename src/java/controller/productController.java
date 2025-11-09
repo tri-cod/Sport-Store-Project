@@ -1,7 +1,7 @@
 // Dán đè toàn bộ code này vào file productController.java
 package controller;
 
-import DAO.productDAO;
+import models.productDAO;
 import DTO.productDTO;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

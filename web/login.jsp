@@ -1,4 +1,5 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -7,8 +8,9 @@
     </head>
     <body>
 
-        <c:if test="${not empty user}">
-            <c:redirect url="home.jsp"/>
+        <%-- Nếu đã đăng nhập, tự động chuyển về trang chủ --%>
+        <c:if test="${not empty sessionScope.user}">
+            <c:redirect url="homeController"/>
         </c:if>
 
         <form action="mainController" method="post">
@@ -18,11 +20,12 @@
                 </tr>
                 <tr>
                     <td>Username</td>
-                    <td><input type="text" name="txtUsername" value="${username}" required /></td>
+                    <%-- Sửa lỗi: Giữ lại username nếu nhập sai pass --%>
+                    <td><input type="text" name="txtUsername" value="${param.txtUsername}" required /></td>
                 </tr>
                 <tr>
                     <td>Password</td>
-                        <td><input type="password" name="txtPassword" required /></td>
+                    <td><input type="password" name="txtPassword" required /></td>
                 </tr>
                 <tr>
                     <td colspan="2" align="center">
@@ -33,14 +36,21 @@
             </table>
         </form>
 
-        <!-- N�t Register t�ch ri�ng -->
-        <form action="mainController" method="post" style="text-align:center; margin-top:10px;">
-            <input type="hidden" name="txtAction" value="register">
-            <button type="submit">Register</button>
-        </form>
+        <%-- Sửa lỗi: Nút Register phải là link (GET) đến trang register.jsp --%>
+        <div style="text-align:center; margin-top:10px;">
+            <a href="register.jsp">
+                <button type="button">Register</button>
+            </a>
+        </div>
 
-        <c:if test="${not empty msg}">
-            <p style="color:red; text-align:center;">${msg}</p>
+        <%-- Sửa lỗi: Link "Quên mật khẩu" trỏ đến resetPass.jsp --%>
+        <div style="text-align:center; margin-top:10px;">
+            <a href="resetPass.jsp">Quên mật khẩu?</a>
+        </div>
+
+        <%-- Hiển thị thông báo (nếu có) --%>
+        <c:if test="${not empty requestScope.msg}">
+            <p style="color:red; text-align:center;">${requestScope.msg}</p>
         </c:if>
 
     </body>

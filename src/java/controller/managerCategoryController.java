@@ -4,7 +4,7 @@
  */
 package controller;
 
-import DAO.categoryDAO;
+import models.categoryDAO;
 import DTO.categoryDTO;
 import java.io.IOException;
 import java.io.PrintWriter;

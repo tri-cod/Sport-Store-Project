@@ -1,6 +1,6 @@
 // Dán đè toàn bộ code này vào file productDAO.java
 
-package DAO;
+package models;
 
 import DTO.productDTO;
 import java.sql.Connection;

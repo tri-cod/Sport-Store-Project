@@ -34,20 +34,24 @@ public class mainController extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         String txtAction = request.getParameter("txtAction");
 
-
+        // Mặc định luôn là homeController
         String url = "homeController";
 
         if (txtAction != null) {
             if (txtAction.equals("search")) {
                 url = "searchController";
-            } else if (txtAction.equals("login") || txtAction.equals("register")) {
-                url = "userController";
-            } else if (txtAction.equals("logout")) {
+            } // 🔽 SỬA LẠI KHỐI NÀY 🔽
+            // Gộp tất cả các action liên quan đến user vào một nơi
+            else if (txtAction.equals("login")
+                    || txtAction.equals("register")
+                    || txtAction.equals("logout")
+                    || txtAction.equals("resetPassword")
+                    || txtAction.equals("requestReset")
+                    || txtAction.equals("validateToken")
+                    || txtAction.equals("performReset")) {
                 url = "userController";
             }
-
         }
-
         request.getRequestDispatcher(url).forward(request, response);
 
     }
