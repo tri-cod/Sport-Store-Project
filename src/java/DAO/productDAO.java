@@ -1,8 +1,8 @@
 // Dán đè toàn bộ code này vào file productDAO.java
-
 package DAO;
 
 import DTO.productDTO;
+import DTO.userDTO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +14,6 @@ import utils.DbUtils;
 public class productDAO {
 
     // (Các biến conn, ps, rs cũ không cần thiết nếu dùng biến cục bộ)
-
     // ĐÃ SỬA: Thêm "WHERE status = 1"
     public List<productDTO> getALlProduct() {
         List<productDTO> list = new ArrayList<>();
@@ -44,10 +43,18 @@ public class productDAO {
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (ps != null) ps.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) {e.printStackTrace();}
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return list;
     }
@@ -92,16 +99,28 @@ public class productDAO {
             e.printStackTrace();
         } finally {
             try {
-                if (rsProduct != null) rsProduct.close();
-                if (psProduct != null) psProduct.close();
-                if (rsGallery != null) rsGallery.close();
-                if (psGallery != null) psGallery.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) { e.printStackTrace(); }
+                if (rsProduct != null) {
+                    rsProduct.close();
+                }
+                if (psProduct != null) {
+                    psProduct.close();
+                }
+                if (rsGallery != null) {
+                    rsGallery.close();
+                }
+                if (psGallery != null) {
+                    psGallery.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return p;
     }
- 
+
     // ĐÃ SỬA: Thêm "AND status = 1"
     public List<productDTO> searchByName(String txtSearch) {
         List<productDTO> list = new ArrayList<>();
@@ -131,10 +150,18 @@ public class productDAO {
             e.printStackTrace();
         } finally {
             try {
-                if (rs != null) rs.close();
-                if (ps != null) ps.close();
-                if (conn != null) conn.close();
-            } catch (SQLException e) {e.printStackTrace();}
+                if (rs != null) {
+                    rs.close();
+                }
+                if (ps != null) {
+                    ps.close();
+                }
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         return list;
     }
@@ -148,14 +175,12 @@ public class productDAO {
     public void insertProduct(productDTO product) throws SQLException, ClassNotFoundException {
         // ... (Code cũ của bạn đã đúng) ...
     }
-    
-    // --- CÁC HÀM MỚI ---
 
+    // --- CÁC HÀM MỚI ---
     // HÀM MỚI 1: XÓA MỀM (SOFT DELETE)
     public void softDeleteProduct(String id) throws SQLException, ClassNotFoundException {
         String sql = "UPDATE tblProduct SET status = 0 WHERE productId = ?";
-        try (Connection conn = DbUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try ( Connection conn = DbUtils.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, id);
             ps.executeUpdate();
         }
@@ -164,8 +189,7 @@ public class productDAO {
     // HÀM MỚI 2: XÓA ẢNH GALLERY CŨ (Dùng cho việc Sửa)
     public void deleteGalleryImages(String productId) throws SQLException, ClassNotFoundException {
         String sql = "DELETE FROM tblProductImages WHERE ProductID = ?";
-        try (Connection conn = DbUtils.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try ( Connection conn = DbUtils.getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, productId);
             ps.executeUpdate();
         }
@@ -173,20 +197,20 @@ public class productDAO {
 
     // HÀM MỚI 3: CẬP NHẬT SẢN PHẨM (UPDATE)
     public void updateProduct(productDTO product) throws SQLException, ClassNotFoundException {
-        
+
         String sql = "UPDATE tblProduct SET "
-                   + "productName = ?, price = ?, size = ?, "
-                   + "color = ?, quantity = ?, description = ?, categoryID = ? "
-                   + (product.getImage() != null ? ", imageBase64 = ? " : "") // Chỉ update ảnh nếu có ảnh mới
-                   + "WHERE productId = ?";
+                + "productName = ?, price = ?, size = ?, "
+                + "color = ?, quantity = ?, description = ?, categoryID = ? "
+                + (product.getImage() != null ? ", imageBase64 = ? " : "") // Chỉ update ảnh nếu có ảnh mới
+                + "WHERE productId = ?";
         Connection conn = null;
-        
+
         try {
             conn = DbUtils.getConnection();
             conn.setAutoCommit(false); // Bắt đầu Transaction
-            
+
             // BƯỚC A: Cập nhật bảng tblProduct
-            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            try ( PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, product.getProductName());
                 ps.setFloat(2, product.getPrice());
                 ps.setString(3, product.getSize());
@@ -194,12 +218,12 @@ public class productDAO {
                 ps.setInt(5, product.getQuantity());
                 ps.setString(6, product.getDescription());
                 ps.setString(7, product.getCategoryId());
-                
+
                 int paramIndex = 8;
                 if (product.getImage() != null) {
-                    ps.setString(paramIndex++, product.getImage()); 
+                    ps.setString(paramIndex++, product.getImage());
                 }
-                ps.setString(paramIndex, product.getProductId()); 
+                ps.setString(paramIndex, product.getProductId());
                 ps.executeUpdate();
             }
 
@@ -207,14 +231,16 @@ public class productDAO {
             if (product.getGalleryImages() != null && !product.getGalleryImages().isEmpty()) {
                 deleteGalleryImages(product.getProductId());
                 for (String imageBase64 : product.getGalleryImages()) {
-                    insertGalleryImage(conn, product.getProductId(), imageBase64); 
+                    insertGalleryImage(conn, product.getProductId(), imageBase64);
                 }
             }
-            
+
             conn.commit(); // Hoàn tất Transaction
-            
+
         } catch (Exception e) {
-            if (conn != null) conn.rollback(); // Hoàn tác
+            if (conn != null) {
+                conn.rollback(); // Hoàn tác
+            }
             e.printStackTrace();
             throw new SQLException(e.getMessage());
         } finally {
@@ -224,4 +250,11 @@ public class productDAO {
             }
         }
     }
+
+    public static void main(String[] args) {
+        productDAO dao = new productDAO();
+        productDTO u = dao.getProductById("P01");
+        System.out.println(u);
+    }
 }
+

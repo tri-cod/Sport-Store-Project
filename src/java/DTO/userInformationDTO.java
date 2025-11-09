@@ -58,4 +58,9 @@ public class userInformationDTO {
     public void setAddress(String address) {
         this.address = address;
     }
+
+    @Override
+    public String toString() {
+        return "userInformationDTO{" + "inforId=" + inforId + ", userId=" + userId + ", name=" + name + ", phoneNumber=" + phoneNumber + ", address=" + address + '}';
+    }
 }

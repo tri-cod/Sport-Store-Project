@@ -248,8 +248,8 @@ public class categoryDAO {
 
     public static void main(String[] args) {
         categoryDAO cdao = new categoryDAO();
-        List<productDTO> List = cdao.getProductByCategoryId("C01");
-        for (productDTO p : List) {
+        List<categoryDTO> List = cdao.getAllCategories();
+        for (categoryDTO p : List) {
             System.out.println(p);
         }
     }

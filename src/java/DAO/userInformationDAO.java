@@ -98,4 +98,11 @@ public class userInformationDAO {
         }
         return list;
     }
+    public static void main(String[] args) {
+        userInformationDAO dao = new userInformationDAO();
+        List<userInformationDTO> list = dao.getUserInformationsByUser("CS000001");
+        for(userInformationDTO u : list){
+            System.out.println(u);
+        }
+    }
 }

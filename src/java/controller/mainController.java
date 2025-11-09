@@ -44,6 +44,8 @@ public class mainController extends HttpServlet {
                 url = "userController";
             } else if (txtAction.equals("logout")) {
                 url = "userController";
+            }else if (txtAction.equals("viewCart")) {
+                url = "cartController";
             }
 
         }

@@ -146,7 +146,7 @@
 
             <!-- Nút chuyển sang trang quản lý địa chỉ -->
             <div class="checkout" style="margin-top: 15px;">
-                <a href="address" 
+                <a href="address?action=view" 
                    style="display:inline-block; background-color:#28a745; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
                     🛠 Quản lý địa chỉ
                 </a>

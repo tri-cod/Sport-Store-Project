@@ -9,6 +9,11 @@
         </head>
     <body>
 
+        <div class="container mt-4">
+            <jsp:include page="header.jsp"/>
+        </div>
+        <div class="container">
+
             <h1>Chi tiết sản phẩm</h1>
 
             <c:if test="${not empty detail}">

@@ -54,10 +54,10 @@ public class addressController extends HttpServlet {
             boolean check = udao.addUserInformation(uInfo);
             if (check == false) {
                 request.setAttribute("msg", "them dia chi that bai");
-                request.getRequestDispatcher("manageAddress.jsp").forward(request, response);
+                request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
             } else {
                 request.setAttribute("msg", "them dia chi thanh cong");
-                request.getRequestDispatcher("manageAddress.jsp").forward(request, response);
+                request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
             }
 
         } catch (ClassNotFoundException ex) {
@@ -108,10 +108,10 @@ public class addressController extends HttpServlet {
             boolean check = udao.deleteUserInformation(infoId);
             if (check == false) {
                 request.setAttribute("msg", "cap nhat dia chi that bai");
-                request.getRequestDispatcher("manageAddress.jsp").forward(request, response);
+                request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
             } else {
                 request.setAttribute("msg", "cap nhat dia chi thanh cong");
-                request.getRequestDispatcher("manageAddress.jsp").forward(request, response);
+                request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
             }
 
         } catch (ClassNotFoundException ex) {
@@ -130,14 +130,14 @@ public class addressController extends HttpServlet {
 
         List<userInformationDTO> list = udao.getUserInformationsByUser(user.getUserId());
         request.setAttribute("listAddress", list);
-        request.getRequestDispatcher("manageAddress.jsp").forward(request, response);
+        request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
 
     }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-
+        loadAddressList(request, response);
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         userDTO user = (userDTO) session.getAttribute("user");
@@ -146,13 +146,13 @@ public class addressController extends HttpServlet {
             return;
         }
 
-        if ("add".equals(action)) {
+        if (action.equals("add")) {
             processAdd(request, response);
-        } else if ("update".equals(action)) {
+        } else if (action.equals("update")) {
             processUpdate(request, response);
-        } else if ("delete".equals(action)) {
+        } else if (action.equals("delete")) {
             processDelete(request, response);
-        } else if ("loadAddressList".equals(action)) {
+        } else if (action.equals("view")) {
             loadAddressList(request, response);
         } else {
             loadAddressList(request, response);
