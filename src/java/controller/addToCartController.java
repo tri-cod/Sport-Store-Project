@@ -4,14 +4,17 @@
  */
 package controller;
 
-import DAO.cartDAO;
+
 import DAO.cartItemDAO;
+import DAO.orderDAO;
 import DAO.productDAO;
 import DTO.cartItemDTO;
+import DTO.orderDTO;
 import DTO.productDTO;
 import DTO.userDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -80,7 +83,7 @@ public class addToCartController extends HttpServlet {
         }
 
         try {
-            cartDAO cartDAO = new cartDAO();
+            orderDAO orderDAO = new orderDAO();
             cartItemDAO cartItemDAO = new cartItemDAO();
             productDAO productDAO = new productDAO();
 
@@ -93,23 +96,36 @@ public class addToCartController extends HttpServlet {
             }
 
             // Lấy hoặc tạo cart (ACTIVE)
-            int cartId = cartDAO.getCurrentCartId(user.getUserId());
-            if (cartId == -1) {
-                cartId = cartDAO.createNewCart(user.getUserId());
+            orderDTO orderID = orderDAO.getCurrentOrder(user.getUserId());
+
+            // Lấy toàn bộ cartItem hiện tại của order
+            List<cartItemDTO> cartItems = cartItemDAO.getCartItemsByOrder(orderID.getOrderId());
+
+// Tìm xem sản phẩm đã có trong giỏ (theo productId + size + color)
+            cartItemDTO existingItem = null;
+            for (cartItemDTO item : cartItems) {
+                // Giả sử cartItemDTO có getSize() và getColor()
+                if (item.getProductId().equals(productId)
+                        && item.getSize().equals(size)
+                        && item.getColor().equals(color)) {
+                    existingItem = item;
+                    break;
+                }
             }
 
-            // Kiểm tra item theo product + size + color
-            cartItemDTO existing = cartItemDAO.getCartItem(cartId, productId, size, color);
-            if (existing != null) {
-                int newQty = existing.getOrderQuantity() + quantity;
-                cartItemDAO.updateQuantity(cartId, productId, size, color, newQty);
+            if (existingItem != null) {
+                // Nếu đã có -> cộng dồn số lượng
+                int newQty = existingItem.getQuantity() + quantity;
+                cartItemDAO.updateCartItem(orderID.getOrderId(), productId, quantity);
             } else {
-                cartItemDAO.addCartItem(cartId, productId, quantity, size, color);
+                // Nếu chưa có -> thêm mới
+                cartItemDAO.addCartItem(orderID.getOrderId(), productId, quantity);
             }
 
             // Thêm msg và forward về detail (hoặc redirect về viewCartController nếu muốn)
             request.setAttribute("msg", "Thêm vào giỏ hàng thành công!");
             // Cập nhật lại detail để hiển thị (nếu detail.jsp dựa vào attribute detail)
+            request.setAttribute("cCart", orderID);
             request.setAttribute("detail", productDAO.getProductById(productId));
             request.getRequestDispatcher("detail.jsp").forward(request, response);
 
@@ -118,21 +134,20 @@ public class addToCartController extends HttpServlet {
             request.setAttribute("msg", "Lỗi server: " + ex.getMessage());
             request.getRequestDispatcher("detail.jsp").forward(request, response);
         }
-    
-}
-        
+
+    }
 
 // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-/**
- * Handles the HTTP <code>GET</code> method.
- *
- * @param request servlet request
- * @param response servlet response
- * @throws ServletException if a servlet-specific error occurs
- * @throws IOException if an I/O error occurs
- */
-@Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
@@ -146,7 +161,7 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
      * @throws IOException if an I/O error occurs
      */
     @Override
-protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
@@ -157,7 +172,7 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
      * @return a String containing servlet description
      */
     @Override
-public String getServletInfo() {
+    public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
 

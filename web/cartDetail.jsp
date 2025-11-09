@@ -99,6 +99,10 @@
     </head>
     <body>
 
+        <div class="container mt-4">
+            <jsp:include page="header.jsp"/>
+        </div>
+
         <h1>🛍 Giỏ hàng của bạn</h1>
 
         <c:if test="${empty listP}">
@@ -141,12 +145,12 @@
 
                             <!-- Cho phép chỉnh số lượng -->
                             <td>
-                                <input type="number" name="quantity" value="${item.orderQuantity}" min="1">
+                                <input type="number" name="quantity" value="${item.quantity}" min="1">
                             </td>
 
                             <!-- Thành tiền -->
                             <td>
-                                <c:set var="subtotal" value="${item.product.price * item.orderQuantity}" />
+                                <c:set var="subtotal" value="${item.product.price * item.quantity}" />
                                 ${subtotal}
                                 <c:set var="total" value="${total + subtotal}" />
                             </td>
@@ -163,7 +167,7 @@
                                 <!-- Nút xóa -->
                                 <form action="removeFromCartController" method="post" style="display:inline;">
                                     <!-- ⬅ chỗ này bạn điền servlet remove -->
-                                    <input type="hidden" name="cartItemId" value="${item.cartItemId}">
+                                    <input type="hidden" name="productId" value="${item.productId}">
                                     <button type="submit" class="btn">Xóa</button>
                                 </form>
                             </td>
@@ -173,11 +177,11 @@
             </table>
 
             <div class="total">
-                Tổng cộng: <span style="color:#e63946;">${total} VND</span>
+                Tổng cộng: <span style="color:#e63946;">${amountPrice} VND</span>
             </div>
 
             <div class="checkout">
-                <form action="" method="post">
+                <form action="paymentController" method="post">
                     <!-- ⬅ chỗ này bạn điền servlet checkout -->
                     <button type="submit">💳 Thanh toán</button>
                 </form>
@@ -186,5 +190,8 @@
 
         <a href="homeController" class="back-link">← Quay lại trang chủ</a>
 
+        <div class="container mt-4">
+            <jsp:include page="footer.jsp"/>
+        </div>
     </body>
 </html>

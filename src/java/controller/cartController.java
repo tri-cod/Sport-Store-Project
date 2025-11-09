@@ -4,10 +4,12 @@
  */
 package controller;
 
-import DAO.cartDAO;
+
 import DAO.cartItemDAO;
-import DTO.cartDTO;
+import DAO.orderDAO;
+
 import DTO.cartItemDTO;
+import DTO.orderDTO;
 import DTO.userDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -35,17 +37,6 @@ public class cartController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void loadCartByUserId(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        String userId = request.getParameter("userId");
-        cartItemDAO dao = new cartItemDAO();
-        List<cartItemDTO> list = dao.getAllItemsByUserId(userId);
-        request.setAttribute("listP", list);
-        request.getRequestDispatcher("cartDetail.jsp").forward(request, response);
-
-    }
-
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -58,10 +49,15 @@ public class cartController extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
+        orderDAO orderDAO = new orderDAO();
+        orderDTO currentOrder = orderDAO.getCurrentOrder(user.getUserId());
+        orderDAO.calculateAmountPrice(currentOrder.getOrderId());
+        orderDAO.updateAmountPrice(currentOrder.getOrderId());
 
         try {
             cartItemDAO dao = new cartItemDAO();
-            List<cartItemDTO> list = dao.getAllItemsByUserId(user.getUserId());
+            List<cartItemDTO> list = dao.getCartItemsByOrder(currentOrder.getOrderId());
+            request.setAttribute("amountPrice", currentOrder.getAmountPrice());
             request.setAttribute("listP", list);
             request.getRequestDispatcher("cartDetail.jsp").forward(request, response);
         } catch (Exception e) {

@@ -9,7 +9,6 @@
         </head>
     <body>
 
-        <div>
             <h1>Chi tiết sản phẩm</h1>
 
             <c:if test="${not empty detail}">
@@ -51,6 +50,10 @@
             </c:if> 
             
             <a href="homeController">← Quay lại trang chủ</a>
+        </div>
+
+        <div class="container mt-4">
+            <jsp:include page="footer.jsp"/>
         </div>
 
     </body>

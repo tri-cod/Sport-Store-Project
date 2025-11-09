@@ -1,159 +1,165 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package DAO;
 
 import DTO.cartItemDTO;
 import DTO.productDTO;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import utils.DbUtils;
+import static utils.DbUtils.getConnection;
 
-/**
- *
- * @author Admin
- */
 public class cartItemDAO {
 
-    Connection conn = null;
-    PreparedStatement ps = null;
-    ResultSet rs = null;
+    private Connection conn;
+    private PreparedStatement ps;
+    private ResultSet rs;
 
-    public void deleteCartItem(int cartItemId) throws Exception {
-        String sql = "DELETE FROM tblCartItem WHERE cartItemId = ?";
-        try ( Connection con = DbUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, cartItemId);
-            ps.executeUpdate();
+  
+
+    private void closeConnection() {
+        try {
+            if (rs != null) rs.close();
+            if (ps != null) ps.close();
+            if (conn != null) conn.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    public List<cartItemDTO> getAllItemsByUserId(String userId) {
+    // 1️⃣ Thêm sản phẩm vào giỏ hàng
+    public void addCartItem(int orderId, String productId, int quantity) {
+        try {
+            conn = getConnection();
+
+            // Kiểm tra sản phẩm đã có trong giỏ chưa
+            String checkSql = "SELECT quantity FROM tblCartItem WHERE orderId = ? AND productId = ?";
+            ps = conn.prepareStatement(checkSql);
+            ps.setInt(1, orderId);
+            ps.setString(2, productId);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                
+                int currentQty = rs.getInt("quantity");
+                String updateSql = "UPDATE tblCartItem SET quantity = ? WHERE orderId = ? AND productId = ?";
+                ps = conn.prepareStatement(updateSql);
+                ps.setInt(1, currentQty + quantity);
+                ps.setInt(2, orderId);
+                ps.setString(3, productId);
+                ps.executeUpdate();
+            } else {
+                // Nếu chưa có, insert mới
+                String insertSql = "INSERT INTO tblCartItem(orderId, productId, quantity) VALUES (?, ?, ?)";
+                ps = conn.prepareStatement(insertSql);
+                ps.setInt(1, orderId);
+                ps.setString(2, productId);
+                ps.setInt(3, quantity);
+                ps.executeUpdate();
+            }
+
+            // Cập nhật lại tổng tiền của order
+            updateOrderAmount(orderId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConnection();
+        }
+    }
+
+    // 2️⃣ Cập nhật số lượng sản phẩm trong giỏ
+    public void updateCartItem(int orderId, String productId, int quantity) {
+        try {
+            conn = getConnection();
+            String sql = "UPDATE tblCartItem SET quantity = ? WHERE orderId = ? AND productId = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, quantity);
+            ps.setInt(2, orderId);
+            ps.setString(3, productId);
+            ps.executeUpdate();
+
+            // Cập nhật tổng tiền
+            updateOrderAmount(orderId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConnection();
+        }
+    }
+
+    // 3️⃣ Xóa sản phẩm khỏi giỏ
+    public void deleteCartItem(int orderId, String productId) {
+        try {
+            conn = getConnection();
+            String sql = "DELETE FROM tblCartItem WHERE orderId = ? AND productId = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            ps.setString(2, productId);
+            ps.executeUpdate();
+
+            // Cập nhật tổng tiền
+            updateOrderAmount(orderId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            closeConnection();
+        }
+    }
+
+    // 4️⃣ Lấy danh sách cartItem theo orderId
+    public List<cartItemDTO> getCartItemsByOrder(int orderId) {
         List<cartItemDTO> list = new ArrayList<>();
         try {
-            Connection conn = DbUtils.getConnection();
-                String sql = "SELECT ci.cartItemId, ci.cartId, ci.quantity, "
-                        + "p.productId, p.productName, p.price, p.imageBase64, p.color, p.size "
-                        + "FROM tblCartItem ci "
-                        + "JOIN tblCart c ON ci.cartId = c.cartId "
-                        + "JOIN tblProduct p ON ci.productId = p.productId "
-                        + "WHERE c.userId = ?";
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, userId);
-            ResultSet rs = ps.executeQuery();
-
+            conn = getConnection();
+            String sql = "SELECT c.cartItemId, c.orderId, c.productId, c.quantity, p.price, p.productName " +
+                         "FROM tblCartItem c " +
+                         "JOIN tblProduct p ON c.productId = p.productId " +
+                         "WHERE c.orderId = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            rs = ps.executeQuery();
             while (rs.next()) {
-                // Tạo ProductDTO
-                productDTO p = new productDTO();
-                p.setProductId(rs.getString("productId"));
-                p.setProductName(rs.getString("productName"));
-                p.setPrice(rs.getFloat("price"));
-                p.setImage(rs.getString("imageBase64"));
-                p.setColor(rs.getString("color"));
-                p.setSize(rs.getString("size"));
-
-                // Tạo CartItemDTO
                 cartItemDTO item = new cartItemDTO();
                 item.setCartItemId(rs.getInt("cartItemId"));
-                item.setCartId(rs.getInt("cartId"));
-                item.setOrderQuantity(rs.getInt("quantity"));
-                item.setProduct(p); // 👈 gắn sản phẩm vào item
+                item.setOrderId(rs.getInt("orderId"));
+                item.setProductId(rs.getString("productId"));
+                item.setQuantity(rs.getInt("quantity"));
+                item.setUnitPrice(rs.getDouble("price"));
+                item.setTotalPrice(rs.getInt("quantity") * rs.getDouble("price"));
+
+                // Optional: gắn productDTO
+                productDTO product = new productDTO();
+                product.setProductId(rs.getString("productId"));
+                product.setProductName(rs.getString("productName"));
+                product.setPrice( rs.getFloat("price"));
+                item.setProduct(product);
 
                 list.add(item);
             }
-
-            rs.close();
-            ps.close();
-            conn.close();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            closeConnection();
         }
         return list;
     }
 
-  public cartItemDTO getCartItem(int cartId, String productId, String size, String color) throws Exception {
-    String sql = "SELECT * FROM tblCartItem WHERE cartId=? AND productId=? AND ISNULL(size, '')=? AND ISNULL(color, '')=?";
-    try (Connection con = DbUtils.getConnection();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-        ps.setInt(1, cartId);
-        ps.setString(2, productId);
-        ps.setString(3, size == null ? "" : size);
-        ps.setString(4, color == null ? "" : color);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            cartItemDTO item = new cartItemDTO();
-            item.setCartItemId(rs.getInt("cartItemId"));
-            item.setCartId(rs.getInt("cartId"));
-            item.setOrderQuantity(rs.getInt("orderQuantity"));
-            item.setSize(rs.getString("size"));
-            item.setColor(rs.getString("color"));
-            return item;
-        }
-    }
-    return null;
-}
-
-public void addCartItem(int cartId, String productId, int quantity, String size, String color) throws Exception {
-    String sql = "INSERT INTO tblCartItem (cartId, productId, quantity, size, color) VALUES (?, ?, ?, ?, ?)";
-    try (Connection con = DbUtils.getConnection();
-         PreparedStatement ps = con.prepareStatement(sql)) {
-        ps.setInt(1, cartId);
-        ps.setString(2, productId);
-        ps.setInt(3, quantity);
-        ps.setString(4, size);
-        ps.setString(5, color);
-        ps.executeUpdate();
-    }
-}
-
-    public void addItemToCart(String userId, String productId, String size, String color, int quantity) {
-        String sql = "INSERT INTO tblCartItem(userId, productId, size, color, quantity) VALUES (?, ?, ?, ?, ?)";
-        try ( Connection con = DbUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setString(1, userId);
-            ps.setString(2, productId);
-            ps.setString(3, size);
-            ps.setString(4, color);
-            ps.setInt(5, quantity);
+    // 5️⃣ Cập nhật tổng tiền order
+    private void updateOrderAmount(int orderId) {
+        try {
+            conn = getConnection();
+            String sql = "UPDATE tblOrder SET amountPrice = " +
+                         "(SELECT SUM(p.price * c.quantity) FROM tblCartItem c " +
+                         "JOIN tblProduct p ON c.productId = p.productId " +
+                         "WHERE c.orderId = ?) " +
+                         "WHERE orderId = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            ps.setInt(2, orderId);
             ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public boolean updateQuantity(int cartId, String productId, String size, String color, int newQty) throws Exception {
-        String sql = "UPDATE tblCartItem SET quantity=? WHERE cartId=? AND productId=? AND ISNULL(size,'')=? AND ISNULL(color,'')=?";
-        try ( Connection con = DbUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, newQty);
-            ps.setInt(2, cartId);
-            ps.setString(3, productId);
-            ps.setString(4, size == null ? "" : size);
-            ps.setString(5, color == null ? "" : color);
-            return ps.executeUpdate() > 0;
-        }
-    }
-
-    // Lấy tất cả item trong cart (dùng để viewCart)
-    public List<cartItemDTO> getAllItemsByCartId(int cartId) throws Exception {
-        List<cartItemDTO> list = new ArrayList<>();
-        String sql = "SELECT * FROM tblCartItem WHERE cartId=?";
-        try ( Connection con = DbUtils.getConnection();  PreparedStatement ps = con.prepareStatement(sql)) {
-            ps.setInt(1, cartId);
-            try ( ResultSet rs = ps.executeQuery()) {
-                productDAO pdao = new productDAO();
-                while (rs.next()) {
-                    cartItemDTO it = new cartItemDTO();
-                    it.setCartItemId(rs.getInt("cartItemId"));
-                    it.setCartId(rs.getInt("cartId"));
-                    it.setOrderQuantity(rs.getInt("quantity"));
-                    it.setProduct(pdao.getProductById(rs.getString("productId")));
-                    list.add(it);
-                }
-            }
-        }
-        return list;
     }
 }
