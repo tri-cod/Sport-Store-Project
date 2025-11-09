@@ -10,6 +10,32 @@
 
         <!-- Bootstrap -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+        <style>
+            .action-link {
+                font-size: 20px;
+                margin: 0 6px;
+                transition: transform 0.2s;
+                text-decoration: none;
+            }
+            .action-link:hover {
+                transform: scale(1.2);
+            }
+            .action-link.edit {
+                color: #f1c40f; /* vàng */
+            }
+            .action-link.edit:hover {
+                color: #d4ac0d;
+            }
+            .action-link.delete {
+                color: #e74c3c; /* đỏ */
+            }
+            .action-link.delete:hover {
+                color: #c0392b;
+            }
+        </style>
     </head>
 
     <body class="container py-4">
@@ -41,6 +67,7 @@
                                 <th>Màu</th>
                                 <th>Size</th>
                                 <th>Tồn kho</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -64,6 +91,25 @@
                                     <td class="text-center">${p.color}</td>
                                     <td class="text-center">${p.size}</td>
                                     <td class="text-center">${p.quantity}</td>
+                                    <td class="text-center">
+
+                                        <!-- Nút sửa (dùng href) -->
+                                        <a href="mainController?txtAction=editProduct=${p.productId}" 
+                                           class="action-link edit" 
+                                           title="Sửa sản phẩm">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+
+                                        <!-- Nút xóa (dùng href + confirm) -->
+                                        <a href="mainController?txtAction=deleteProduct&productId=${p.productId}"
+                                           class="action-link delete"
+                                           title="Xóa sản phẩm"
+                                           onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này không?');">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </a>
+
+
+                                    </td>
                                 </tr>
                             </c:forEach>
                         </tbody>
