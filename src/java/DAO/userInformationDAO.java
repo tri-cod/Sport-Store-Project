@@ -48,7 +48,7 @@ public class userInformationDAO {
     }
 
     public userInformationDTO getUserInformationById(String inforId) {
-        String sql = "SELECT * FROM tblUserInformation WHERE inforId = ?";
+        String sql = "SELECT * FROM tblUserInformation WHERE infoId = ?";
         try ( Connection conn = getConnection();  PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, inforId);
@@ -56,7 +56,7 @@ public class userInformationDAO {
 
             if (rs.next()) {
                 userInformationDTO info = new userInformationDTO();
-                info.setInforId(rs.getString("inforId"));
+                info.setInforId(rs.getString("infoId"));
                 info.setUserId(rs.getString("userId"));
                 info.setName(rs.getString("name"));
                 info.setPhoneNumber(rs.getString("phoneNumber"));

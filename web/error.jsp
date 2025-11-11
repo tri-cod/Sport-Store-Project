@@ -12,6 +12,8 @@
         <title>JSP Page</title>
     </head>
     <body>
+        
+        <h1>404 error</h1>
     <c:if test="${not empty msg}">
         <p style="color:red; text-align:center;">${msg}</p>
     </c:if>

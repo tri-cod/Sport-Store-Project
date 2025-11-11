@@ -122,12 +122,24 @@
         </tbody>
     </table>
 
+    <!-- Hiển thị địa chỉ đã chọn -->
+    <c:if test="${not empty sessionScope.selectedAddress}">
+        <div class="shipping-info" style="width:80%; margin:20px auto; background:#fff; padding:15px; border-radius:6px; box-shadow:0 2px 6px rgba(0,0,0,0.1);">
+            <h3>📍 Địa chỉ giao hàng đã chọn</h3>
+            <p>
+                <b>Người nhận:</b> ${sessionScope.selectedAddress.name} <br>
+                <b>Số điện thoại:</b> ${sessionScope.selectedAddress.phoneNumber} <br>
+                <b>Địa chỉ:</b> ${sessionScope.selectedAddress.address}
+            </p>
+        </div>
+    </c:if>
+
     <div class="total">
         Tổng cộng: <span style="color:#e63946;">${total} VND</span>
     </div>
 
-    <form action="confirmCOD" method="post">
-        <input type="hidden" name="totalAmount" value="${total}">
+    <form action="CODpayment" method="post">
+        <input type="hidden" name="action" value="done">
         <button type="submit" class="btn-confirm">✅ Xác nhận đơn hàng</button>
     </form>
 </c:if>

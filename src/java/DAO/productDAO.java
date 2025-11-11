@@ -13,6 +13,55 @@ import utils.DbUtils;
 
 public class productDAO {
 
+    public void insertProduct(productDTO product) throws SQLException, ClassNotFoundException {
+        String sql = "INSERT INTO tblProduct (productId, productName, price, size, imageBase64, color, quantity, description, categoryID)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection conn = null;
+        try {
+            conn = DbUtils.getConnection();
+            conn.setAutoCommit(false); // Bắt đầu Transaction
+
+            // BƯỚC A: Thêm sản phẩm chính vào tblProduct
+            try ( PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, product.getProductId());
+                ps.setString(2, product.getProductName());
+                ps.setFloat(3, product.getPrice());
+                ps.setString(4, product.getSize());
+                ps.setString(5, product.getImage()); // Ảnh đại diện
+                ps.setString(6, product.getColor());
+                ps.setInt(7, product.getQuantity());
+                ps.setString(8, product.getDescription());
+                ps.setString(9, product.getCategoryId());
+                ps.executeUpdate();
+            }
+
+            // BƯỚC B: Thêm các ảnh gallery vào tblProductImages
+            if (product.getGalleryImages() != null) {
+                for (String imageBase64 : product.getGalleryImages()) {
+                    insertGalleryImage(conn, product.getProductId(), imageBase64);
+                }
+            }
+
+            conn.commit(); // Hoàn tất Transaction
+
+        } catch (Exception e) {
+            if (conn != null) {
+                conn.rollback(); // Hoàn tác nếu có lỗi
+            }
+            e.printStackTrace();
+            throw new SQLException(e.getMessage()); // Ném lỗi ra
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.setAutoCommit(true); // Trả lại autoCommit
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     // (Các biến conn, ps, rs cũ không cần thiết nếu dùng biến cục bộ)
     // ĐÃ SỬA: Thêm "WHERE status = 1"
     public List<productDTO> getALlProduct() {
@@ -167,13 +216,16 @@ public class productDAO {
     }
 
     // HÀM private insertGalleryImage (Giữ nguyên)
-    private void insertGalleryImage(Connection conn, String productId, String imageBase64) throws SQLException {
-        // ... (Code cũ của bạn đã đúng) ...
-    }
-
     // Hàm insertProduct (Giữ nguyên)
-    public void insertProduct(productDTO product) throws SQLException, ClassNotFoundException {
-        // ... (Code cũ của bạn đã đúng) ...
+    // HÀM HỖ TRỢ MỚI (private)
+    private void insertGalleryImage(Connection conn, String productId, String imageBase64) throws SQLException {
+        String sql = "INSERT INTO tblProductImages (ProductID, ImageBase64) VALUES (?, ?)";
+        try ( PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, productId);
+            ps.setString(2, imageBase64);
+            ps.executeUpdate();
+        }
+        // Không đóng Connection ở đây!
     }
 
     // --- CÁC HÀM MỚI ---
@@ -256,5 +308,5 @@ public class productDAO {
         productDTO u = dao.getProductById("P01");
         System.out.println(u);
     }
-}
 
+}

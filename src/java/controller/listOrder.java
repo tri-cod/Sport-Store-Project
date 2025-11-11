@@ -4,29 +4,24 @@
  */
 package controller;
 
-import DAO.cartItemDAO;
 import DAO.orderDAO;
-import DAO.userInformationDAO;
-import DTO.cartItemDTO;
 import DTO.orderDTO;
-import DTO.userDTO;
-import DTO.userInformationDTO;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  *
  * @author Admin
  */
-@WebServlet(name = "paymentController", urlPatterns = {"/paymentController"})
-public class paymentController extends HttpServlet {
+@WebServlet(name = "listOrder", urlPatterns = {"/listOrder"})
+public class listOrder extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,34 +35,19 @@ public class paymentController extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        HttpSession session = request.getSession();
-        userDTO user = (userDTO) session.getAttribute("user");
-        userInformationDAO udao = new userInformationDAO();
-
-        if (user == null) {
-            // Nếu chưa đăng nhập -> chuyển về trang login
-            response.sendRedirect("login.jsp");
-            return;
-        }
-        orderDAO orderDAO = new orderDAO();
-        orderDTO currentOrder = orderDAO.getCurrentOrder(user.getUserId());
-        orderDAO.calculateAmountPrice(currentOrder.getOrderId());
-        orderDAO.updateAmountPrice(currentOrder.getOrderId());
-
         try {
-            List<userInformationDTO> lista = udao.getUserInformationsByUser(user.getUserId());
-            request.setAttribute("listAddress", lista);
-            cartItemDAO dao = new cartItemDAO();
-            List<cartItemDTO> list = dao.getCartItemsByOrder(currentOrder.getOrderId());
-            request.setAttribute("amountPrice", currentOrder.getAmountPrice());
-            request.setAttribute("listP", list);
-            request.getRequestDispatcher("payment.jsp").forward(request, response);
+            orderDAO dao = new orderDAO();
+            List<orderDTO> orders = dao.getAllOrders();
+            if (orders == null) {
+                orders = new ArrayList<>();
+            }
+            request.setAttribute("orders", orders);
+            request.getRequestDispatcher("adminOrders.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("msg", "Lỗi khi tải giỏ hàng: " + e.getMessage());
-            request.getRequestDispatcher("payment.jsp").forward(request, response);
+            request.setAttribute("msg", "Lỗi hệ thống: " + e.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
-
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

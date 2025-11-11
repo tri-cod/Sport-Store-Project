@@ -11,7 +11,7 @@ public class userInformationDTO {
     public userInformationDTO() {
     }
 
-    public userInformationDTO(String userId, String name, String phoneNumber, String address) {
+    public userInformationDTO(String name,String phoneNumber, String address,String userId) {
         this.userId = userId;
         this.name = name;
         this.phoneNumber = phoneNumber;
@@ -22,6 +22,7 @@ public class userInformationDTO {
     public String getInforId() {
         return inforId;
     }
+    
 
     public void setInforId(String inforId) {
         this.inforId = inforId;

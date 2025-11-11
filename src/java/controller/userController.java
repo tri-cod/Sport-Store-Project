@@ -127,11 +127,11 @@ public class userController extends HttpServlet {
 
     }
 
-   
-
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
         response.setContentType("text/html;charset=UTF-8");
+        request.setCharacterEncoding("UTF-8");
         String action = request.getParameter("txtAction");
         if (action.equals("login")) {
             processLogin(request, response);
@@ -139,8 +139,8 @@ public class userController extends HttpServlet {
             processRegister(request, response);
         } else if (action.equals("logout")) {
             processLogout(request, response);
-        } 
-        
+        }
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

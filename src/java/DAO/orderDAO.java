@@ -13,6 +13,7 @@ import java.security.cert.CertPathValidatorException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import utils.DbUtils;
 import static utils.DbUtils.getConnection;
 
 public class orderDAO {
@@ -69,6 +70,18 @@ public class orderDAO {
             e.printStackTrace();
         }
         return -1;
+    }
+
+    public boolean createOrder(String userId, double totalBill, int infoId) throws SQLException, ClassNotFoundException {
+        Connection conn = DbUtils.getConnection();
+        String sql = "INSERT INTO tblOrder (userId, amountPrice, status, infoId) VALUES (?, ?, 'Completed', ?)";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setString(1, userId);
+        ps.setDouble(2, totalBill);
+        ps.setInt(3, infoId);
+        int row = ps.executeUpdate();
+        conn.close();
+        return row > 0;
     }
 
     // Tính tổng amountPrice cho 1 order
@@ -171,4 +184,84 @@ public class orderDAO {
         }
         return false;
     }
+
+    public int createOrder(orderDTO order) throws SQLException, ClassNotFoundException {
+        int orderId = -1;
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = DbUtils.getConnection();
+            String sql = "INSERT INTO tblOrder(userId, infoId,status, amountPrice, paymentMethod) VALUES (?, ?,?, ?, ?)";
+            ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, order.getUserId());
+            ps.setString(2, order.getInforId());
+            ps.setString(3, order.getStatus());
+            ps.setDouble(4, order.getAmountPrice());
+            ps.setString(5, order.getPaymentMethod());
+            int affectedRows = ps.executeUpdate();
+
+            if (affectedRows == 0) {
+                throw new SQLException("Tạo order thất bại, không có hàng nào được thêm.");
+            }
+
+            rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                orderId = rs.getInt(1);
+            } else {
+                throw new SQLException("Tạo order thất bại, không lấy được orderId.");
+            }
+
+        } catch (SQLException e) {
+            // Đây là nơi bạn có thể lấy thông tin lỗi chi tiết
+            System.err.println("SQLState: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
+            System.err.println("Message: " + e.getMessage());
+            throw e; // ném lại để controller xử lý
+        } finally {
+            if (rs != null) {
+                rs.close();
+            }
+            if (ps != null) {
+                ps.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+
+        return orderId;
+    }
+
+ public List<orderDTO> getAllOrders() throws SQLException, ClassNotFoundException {
+        List<orderDTO> list = new ArrayList<>();
+        conn = DbUtils.getConnection();
+        String sql = "SELECT * FROM tblOrder WHERE status IN ('Spending','Completed','Failed','Unpaid') ORDER BY orderId DESC";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            orderDTO o = new orderDTO();
+            o.setOrderId(rs.getInt("orderId"));
+            o.setUserId(rs.getString("userId"));
+            o.setInforId(rs.getString("infoId")); // có thể null
+            o.setAmountPrice(rs.getFloat("amountPrice"));
+            o.setPaymentMethod(rs.getString("paymentMethod"));
+            o.setStatus(rs.getString("status"));
+            o.setCreatedDate(rs.getDate("createdDate"));
+            list.add(o);
+        }
+        rs.close();
+        ps.close();
+        return list;
+    }
+
+    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+        orderDAO dao = new orderDAO();
+        List<orderDTO> orders = dao.getAllOrders();
+        for (orderDTO order : orders) {
+            System.out.println(order);
+        }
+    }
+
 }

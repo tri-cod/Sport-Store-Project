@@ -9,6 +9,26 @@ public class orderDTO {
     private Date createdDate;
     private String status;
     private double amountPrice;
+    private String paymentMethod;
+    private String inforId;
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+
+    public String getInforId() {
+        return inforId;
+    }
+
+    public void setInforId(String inforId) {
+        this.inforId = inforId;
+    }
+
+   
 
     public orderDTO() {
     }

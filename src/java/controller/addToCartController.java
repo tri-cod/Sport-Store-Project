@@ -106,8 +106,7 @@ public class addToCartController extends HttpServlet {
             for (cartItemDTO item : cartItems) {
                 // Giả sử cartItemDTO có getSize() và getColor()
                 if (item.getProductId().equals(productId)
-                        && item.getSize().equals(size)
-                        && item.getColor().equals(color)) {
+                     ) {
                     existingItem = item;
                     break;
                 }
@@ -116,7 +115,7 @@ public class addToCartController extends HttpServlet {
             if (existingItem != null) {
                 // Nếu đã có -> cộng dồn số lượng
                 int newQty = existingItem.getQuantity() + quantity;
-                cartItemDAO.updateCartItem(orderID.getOrderId(), productId, quantity);
+                cartItemDAO.updateCartItem(orderID.getOrderId(), productId, newQty);
             } else {
                 // Nếu chưa có -> thêm mới
                 cartItemDAO.addCartItem(orderID.getOrderId(), productId, quantity);

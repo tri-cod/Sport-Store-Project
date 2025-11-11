@@ -24,7 +24,7 @@ import javax.servlet.http.HttpSession;
  *
  * @author Admin
  */
-@WebServlet(name = "addressController", urlPatterns = {"/address"})
+@WebServlet(name = "addressController", urlPatterns = {"/addressController"})
 public class addressController extends HttpServlet {
 
     /**
@@ -83,10 +83,10 @@ public class addressController extends HttpServlet {
             boolean check = udao.updateUserInformation(uInfo);
             if (check == false) {
                 request.setAttribute("msg", "cap nhat dia chi that bai");
-                request.getRequestDispatcher("error.jsp").forward(request, response);
+                request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
             } else {
                 request.setAttribute("msg", "cap nhat dia chi thanh cong");
-                request.getRequestDispatcher("error.jsp").forward(request, response);
+                request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
             }
 
         } catch (ClassNotFoundException ex) {
@@ -107,17 +107,21 @@ public class addressController extends HttpServlet {
         try {
             boolean check = udao.deleteUserInformation(infoId);
             if (check == false) {
-                request.setAttribute("msg", "cap nhat dia chi that bai");
+                request.setAttribute("msg", "Xoa khong thanh cong");
                 request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
-            } else {
-                request.setAttribute("msg", "cap nhat dia chi thanh cong");
+            } else {           
+                request.setAttribute("msg", "Xoa thanh cong");
                 request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
             }
 
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(addressController.class.getName()).log(Level.SEVERE, null, ex);
+            request.setAttribute("msg", "Lỗi hệ thống: " + ex.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         } catch (SQLException ex) {
             Logger.getLogger(addressController.class.getName()).log(Level.SEVERE, null, ex);
+            request.setAttribute("msg", "Lỗi hệ thống: " + ex.getMessage());
+            request.getRequestDispatcher("error.jsp").forward(request, response);
         }
     }
 
@@ -129,15 +133,67 @@ public class addressController extends HttpServlet {
         userInformationDAO udao = new userInformationDAO();
 
         List<userInformationDTO> list = udao.getUserInformationsByUser(user.getUserId());
+        
         request.setAttribute("listAddress", list);
         request.getRequestDispatcher("managerAddress.jsp").forward(request, response);
 
     }
 
+    protected void loadAddressListForPayment(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        userDTO user = (userDTO) session.getAttribute("user");
+
+        userInformationDAO udao = new userInformationDAO();
+
+        List<userInformationDTO> list = udao.getUserInformationsByUser(user.getUserId());
+        request.setAttribute("listAddress", list);
+        request.getRequestDispatcher("payment.jsp").forward(request, response);
+
+    }
+
+    protected void processUseSelectedAddress(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        userDTO user = (userDTO) session.getAttribute("user");
+        if (user == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        String selectedInfoId = request.getParameter("selectedAddress");
+
+        // Lấy thông tin userAddress từ database
+        userInformationDAO udao = new userInformationDAO();
+        userInformationDTO selectedAddress = null;
+        try {
+            selectedAddress = udao.getUserInformationById(selectedInfoId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (selectedAddress != null) {
+            // Lưu vào session để hiển thị trên JSP
+            session.setAttribute("selectedAddress", selectedAddress);
+            // Thêm cờ thông báo
+            request.setAttribute("msg", "✅ Đã chọn địa chỉ thành công!");
+        } else {
+            session.setAttribute("selectedAddress", selectedAddress);
+            // Thêm cờ thông báo
+            request.setAttribute("msg", "chọn địa khong thành công!");
+        }
+
+        // Load lại listAddress để dropdown vẫn đầy đủ
+        List<userInformationDTO> listAddress = udao.getUserInformationsByUser(user.getUserId());
+        request.setAttribute("listAddress", listAddress);
+
+        // Quay lại payment.jsp
+        request.getRequestDispatcher("paymentController").forward(request, response);
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        loadAddressList(request, response);
         String action = request.getParameter("action");
         HttpSession session = request.getSession();
         userDTO user = (userDTO) session.getAttribute("user");
@@ -145,6 +201,7 @@ public class addressController extends HttpServlet {
             response.sendRedirect("login.jsp");
             return;
         }
+
 
         if (action.equals("add")) {
             processAdd(request, response);
@@ -154,6 +211,8 @@ public class addressController extends HttpServlet {
             processDelete(request, response);
         } else if (action.equals("view")) {
             loadAddressList(request, response);
+        } else if (action.equals("useSelectedAddress")) {
+            processUseSelectedAddress(request, response);
         } else {
             loadAddressList(request, response);
         }

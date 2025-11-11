@@ -144,30 +144,58 @@
                 Tổng cộng: <span style="color:#e63946;">${amountPrice} VND</span>
             </div>
 
-            <!-- Nút chuyển sang trang quản lý địa chỉ -->
+            <!-- 🟩 Nút chuyển sang trang quản lý địa chỉ -->
             <div class="checkout" style="margin-top: 15px;">
-                <a href="address?action=view" 
+                <a href="addressController?action=view"
                    style="display:inline-block; background-color:#28a745; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
                     🛠 Quản lý địa chỉ
                 </a>
             </div>
 
-            <!-- 🟧 Form điền thông tin người nhận -->
-            <form action="addressController?action=loadAddressList" method="post"> <!-- ⬅ Chuyển sang Servlet quản lý address -->
-                <label for="selectedAddress">Chọn địa chỉ:</label>
-                <select id="selectedAddress" name="selectedAddress">
-                    <c:forEach var="addr" items="${listAddress}">
-                        <option value="${addr.inforId}">
-                            ${addr.name} - ${addr.phoneNumber} - ${addr.address}
-                        </option>
-                    </c:forEach>
-                </select>
-                <div class="checkout">
-                    <button type="submit" name="txtAction" value="useSelectedAddress" style="background-color:#007bff;">
-                        ✅ Chọn địa chỉ
-                    </button>
-                </div>
-            </form>
+            <!-- 🟧 Form chọn địa chỉ giao hàng -->
+            <div class="shipping-info">
+                <h3>📍 Thông tin giao hàng</h3>
+
+                <!-- Thông báo khi chọn địa chỉ -->
+                <c:if test="${not empty msg}">
+                    <p style="color:green; text-align:center; font-weight:bold;">${msg}</p>
+                </c:if>
+
+                <c:if test="${empty listAddress}">
+                    <p style="color:red; text-align:center;">
+                        ⚠️ Bạn chưa có địa chỉ giao hàng nào.
+                    </p>
+                    <div class="checkout" style="margin-top: 10px;">
+                        <a href="addressController?action=view"
+                           style="display:inline-block; background-color:#28a745; color:white; padding:10px 20px; border-radius:6px; text-decoration:none;">
+                            ➕ Thêm địa chỉ mới
+                        </a>
+                    </div>
+                </c:if>
+
+                <c:if test="${not empty listAddress}">
+                    <form action="addressController" method="post" style="margin-top: 15px;">
+                        <input type="hidden" name="action" value="useSelectedAddress">
+
+                        <label for="selectedAddress"><b>Chọn địa chỉ giao hàng:</b></label>
+                        <select id="selectedAddress" name="selectedAddress" required 
+                                style="width:100%; padding:8px; border-radius:5px; margin-top:5px;">
+                            <c:forEach var="item" items="${listAddress}">
+                                <option value="${item.inforId}" 
+                                        ${sessionScope.selectedAddress != null && sessionScope.selectedAddress.inforId == item.inforId ? "selected" : ""}>
+                                    ${item.inforId}-${item.name} - ${item.phoneNumber} - ${item.address}
+                                </option>
+                            </c:forEach>
+                        </select>
+
+                        <div class="checkout" style="margin-top: 10px;">
+                            <button type="submit" style="background-color:#007bff; color:white; padding:10px 20px; border:none; border-radius:6px;">
+                                ✅ Sử dụng địa chỉ này
+                            </button>
+                        </div>
+                    </form>
+                </c:if>
+            </div>
 
             <!-- 🟩/🟦 Phương thức thanh toán -->
             <div class="payment-method">
